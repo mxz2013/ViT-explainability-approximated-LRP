@@ -28,6 +28,8 @@ class ModelConfig:
     factory: Callable
     patch_size: int
     image_size: int = 224
+    normalize_mean: list[float] = (0.5, 0.5, 0.5)
+    normalize_std: list[float] = (0.5, 0.5, 0.5)
 
 
 MODEL_REGISTRY: dict[str, ModelConfig] = {
@@ -42,6 +44,8 @@ MODEL_REGISTRY: dict[str, ModelConfig] = {
     "dinov2_base_imagenet1k_1layer_lrp": ModelConfig(
         factory=dinov2_base_imagenet1k_1layer_lrp,
         patch_size=14,
+        normalize_mean=[0.485, 0.456, 0.406],
+        normalize_std=[0.229, 0.224, 0.225],
     ),
 }
 
@@ -122,7 +126,9 @@ def get_top_classes(predictions, topk=5):
         class_name = CLS2IDX[cls_idx]
         class_prob = prob[0, cls_idx].item()
         results.append((cls_idx, class_name, class_prob))
-        logger.info(f"Class: {class_name} Probability: {class_prob:.4f}")
+        logger.info(
+            f"ID {cls_idx}, Class: {class_name} , Probability: {class_prob:.4f}"
+        )
     return results
 
 
@@ -145,7 +151,11 @@ def main(model_name: str, image_path: str, method: str, use_thresholding: bool =
 
     config = MODEL_REGISTRY[model_name]
 
-    normalize = transforms.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5])
+    # be careful about normalization values for different models
+    normalize = transforms.Normalize(
+        mean=config.normalize_mean, std=config.normalize_std
+    )
+
     transform = transforms.Compose(
         [
             transforms.Resize(256),
@@ -172,7 +182,7 @@ def main(model_name: str, image_path: str, method: str, use_thresholding: bool =
     # Create 2x2 plot: original + top-3 attributions
     fig, axs = plt.subplots(2, 3, figsize=(10, 10))
     fig.suptitle(f"Model: {model_name} | Method: {method}", fontsize=12)
-    fig.tight_layout(pad=3.0, rect=[0, 0, 1, 0.96])
+    fig.tight_layout()
 
     # Original image
     axs[0, 0].set_title("Original Image")
