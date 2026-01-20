@@ -323,12 +323,15 @@ class VisionTransformer(nn.Module):
         mlp_head=False,
         drop_rate=0.0,
         attn_drop_rate=0.0,
+        use_bn_in_head=False,
     ):
         super().__init__()
         self.num_classes = num_classes
         self.num_features = self.embed_dim = (
             embed_dim  # num_features for consistency with other models
         )
+        self.use_bn_in_head = use_bn_in_head
+
         self.patch_embed = PatchEmbed(
             img_size=img_size,
             patch_size=patch_size,
@@ -357,6 +360,13 @@ class VisionTransformer(nn.Module):
         )
 
         self.norm = LayerNorm(embed_dim)
+
+        # Optional BatchNorm before head (used by MAE linear probing)
+        if use_bn_in_head:
+            self.head_bn = BatchNorm1d(embed_dim, affine=False, eps=1e-6)
+        else:
+            self.head_bn = None
+
         if mlp_head:
             # paper diagram suggests 'MLP head', but results in 4M extra parameters vs paper
             self.head = Mlp(embed_dim, int(embed_dim * mlp_ratio), num_classes)
@@ -412,7 +422,12 @@ class VisionTransformer(nn.Module):
         x = self.norm(x)
         x = self.pool(x, dim=1, indices=torch.tensor(0, device=x.device))  # 1, 1, 768
         x = x.squeeze(1)  # 1, 768
-        x = self.head(x)  # 1, 1000
+
+        # Optional BatchNorm before head (used by MAE linear probing)
+        if self.head_bn is not None:
+            x = self.head_bn(x)
+
+        x = self.head(x)  # 1, num_classes
         return x
 
     def relprop(
@@ -425,8 +440,13 @@ class VisionTransformer(nn.Module):
     ):
         # print(kwargs)
         # print("conservation 1", cam.sum())
-        # cam.shape: (1, 1000) starting from the output logits
+        # cam.shape: (1, num_classes) starting from the output logits
         cam = self.head.relprop(cam, **kwargs)
+
+        # Propagate through BatchNorm if present
+        if self.head_bn is not None:
+            cam = self.head_bn.relprop(cam, **kwargs)
+
         cam = cam.unsqueeze(1)
         cam = self.pool.relprop(cam, **kwargs)
         cam = self.norm.relprop(cam, **kwargs)
@@ -570,4 +590,103 @@ def deit_base_patch16_224(pretrained=False, **kwargs):
             check_hash=True,
         )
         model.load_state_dict(checkpoint["model"])
+    return model
+
+
+def mae_vit_base_patch16_224(checkpoint_path, num_classes=1000, **kwargs):
+    """
+    Load MAE ViT-Base model with linear probing head for LRP.
+
+    MAE uses the same architecture as DeiT/ViT:
+    - patch_size=16, embed_dim=768, depth=12, num_heads=12, mlp_ratio=4, qkv_bias=True
+    - Uses CLS token for classification (not global average pooling)
+    - MAE linear probing adds BatchNorm1d before the classification head
+
+    Args:
+        checkpoint_path: Path to MAE linear probing checkpoint (.pth file)
+                        This should be the checkpoint saved after linear probing training,
+                        which contains both the pretrained backbone and trained head.
+        num_classes: Number of output classes (default: 1000 for ImageNet)
+        **kwargs: Additional arguments passed to VisionTransformer
+
+    Returns:
+        VisionTransformer model with loaded MAE weights
+
+    Example:
+        >>> model = mae_vit_base_patch16_224(
+        ...     checkpoint_path='output_dir/checkpoint-best.pth',
+        ...     num_classes=10
+        ... )
+        >>> model.eval()
+    """
+    # MAE linear probing uses BatchNorm1d before the classification head
+    model = VisionTransformer(
+        patch_size=16,
+        embed_dim=768,
+        depth=12,
+        num_heads=12,
+        mlp_ratio=4,
+        qkv_bias=True,
+        num_classes=num_classes,
+        use_bn_in_head=True,  # Enable BatchNorm before head
+        **kwargs,
+    )
+    model.default_cfg = _cfg(
+        mean=(0.485, 0.456, 0.406),
+        std=(0.229, 0.224, 0.225),
+    )
+
+    print(f"Loading MAE checkpoint from: {checkpoint_path}")
+    checkpoint = torch.load(checkpoint_path, map_location="cpu", weights_only=False)
+
+    # MAE checkpoints have 'model' key
+    if "model" in checkpoint:
+        checkpoint_model = checkpoint["model"]
+    else:
+        checkpoint_model = checkpoint
+
+    # Build state dict mapping from MAE to our LRP model
+    state_dict = {}
+
+    for k, v in checkpoint_model.items():
+        # Map BatchNorm running statistics from head.0.* to head_bn.*
+        # MAE saves: head.0.running_mean, head.0.running_var, head.0.num_batches_tracked
+        if k == "head.0.running_mean":
+            state_dict["head_bn.running_mean"] = v
+            continue
+        if k == "head.0.running_var":
+            state_dict["head_bn.running_var"] = v
+            continue
+        if k == "head.0.num_batches_tracked":
+            state_dict["head_bn.num_batches_tracked"] = v
+            continue
+
+        # Map head.1.weight/bias (Linear after BatchNorm) to head.weight/bias
+        if k == "head.1.weight":
+            state_dict["head.weight"] = v
+            continue
+        if k == "head.1.bias":
+            state_dict["head.bias"] = v
+            continue
+
+        # Direct mapping for backbone weights
+        # MAE uses same naming: patch_embed.proj, cls_token, pos_embed, blocks.X.*, norm.*
+        new_key = k
+
+        # Handle potential naming differences
+        # MAE: blocks.0.attn.qkv.weight -> ViT_LRP: blocks.0.attn.qkv.weight (same)
+        # MAE: blocks.0.attn.proj.weight -> ViT_LRP: blocks.0.attn.proj.weight (same)
+        # MAE: blocks.0.mlp.fc1.weight -> ViT_LRP: blocks.0.mlp.fc1.weight (same)
+        # MAE: blocks.0.mlp.fc2.weight -> ViT_LRP: blocks.0.mlp.fc2.weight (same)
+        # MAE: blocks.0.norm1.weight -> ViT_LRP: blocks.0.norm1.weight (same)
+        # MAE: blocks.0.norm2.weight -> ViT_LRP: blocks.0.norm2.weight (same)
+
+        state_dict[new_key] = v
+
+    # Load weights
+    msg = model.load_state_dict(state_dict, strict=False)
+    print("Loaded MAE weights:")
+    print(f"  Missing keys: {msg.missing_keys}")
+    print(f"  Unexpected keys: {msg.unexpected_keys}")
+
     return model

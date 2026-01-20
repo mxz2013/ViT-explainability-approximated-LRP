@@ -9,9 +9,10 @@ from dataclasses import dataclass
 from typing import Callable
 from utils.CLS2IDX import CLS2IDX
 
-from baselines.ViT.ViT_LRP import vit_base_patch16_224, vit_large_patch16_224
+from baselines.ViT.ViT_LRP import vit_base_patch16_224, mae_vit_base_patch16_224
 from baselines.ViT.ViT_explanation_generator import LRP
 from baselines.ViT.DINOv2_LRP import dinov2_base_imagenet1k_1layer_lrp
+from baselines.ViT.CLIP_LRP import clip_vit_base_patch16_224
 
 from logging import basicConfig, getLogger
 
@@ -28,6 +29,8 @@ class ModelConfig:
     factory: Callable
     patch_size: int
     image_size: int = 224
+    model_path: str = ""
+    num_classes: int = 1000
     normalize_mean: list[float] = (0.5, 0.5, 0.5)
     normalize_std: list[float] = (0.5, 0.5, 0.5)
 
@@ -37,15 +40,27 @@ MODEL_REGISTRY: dict[str, ModelConfig] = {
         factory=vit_base_patch16_224,
         patch_size=16,
     ),
-    "vit_large_patch16_224": ModelConfig(
-        factory=vit_large_patch16_224,
+    "mae_vit_base_patch16_224": ModelConfig(
+        factory=mae_vit_base_patch16_224,
         patch_size=16,
+        model_path="mae/output_dir_small_batch/checkpoint-44.pth",
+        num_classes=300,
+        normalize_mean=[0.485, 0.456, 0.406],
+        normalize_std=[0.229, 0.224, 0.225],
     ),
     "dinov2_base_imagenet1k_1layer_lrp": ModelConfig(
         factory=dinov2_base_imagenet1k_1layer_lrp,
         patch_size=14,
         normalize_mean=[0.485, 0.456, 0.406],
         normalize_std=[0.229, 0.224, 0.225],
+    ),
+    "clip_vit_base_patch16_224": ModelConfig(
+        factory=clip_vit_base_patch16_224,
+        patch_size=16,
+        model_path="clip/output_dir_small_batch/checkpoint-14.pth",
+        num_classes=5,
+        normalize_mean=[0.48145466, 0.4578275, 0.40821073],
+        normalize_std=[0.26862954, 0.26130258, 0.27577711],
     ),
 }
 
@@ -171,7 +186,9 @@ def main(model_name: str, image_path: str, method: str, use_thresholding: bool =
 
     # Initialize model
     logger.info(f"Loading model: {model_name}")
-    model = config.factory(pretrained=True).to(device)
+    model = config.factory(
+        checkpoint_path=config.model_path, num_classes=config.num_classes
+    ).to(device)
     model.eval()
     attribution_generator = LRP(model)
 

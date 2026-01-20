@@ -17,3 +17,8 @@ dependencies = [
     "torchvision>=0.24.1",
     "transformers>=4.57.5",
 ]
+
+[tool.uv.workspace]
+members = [
+    "clip",
+]

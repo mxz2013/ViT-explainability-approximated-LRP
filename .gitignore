@@ -8,6 +8,8 @@ wheels/
 # debug files
 dinov2/
 debug/
+mae/
+clip/
 
 # vscode related
 .vscode/

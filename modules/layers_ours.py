@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-__all__ = ['forward_hook', 'Clone', 'Add', 'Cat', 'ReLU', 'GELU', 'Dropout', 'BatchNorm2d', 'Linear', 'MaxPool2d',
+__all__ = ['forward_hook', 'Clone', 'Add', 'Cat', 'ReLU', 'GELU', 'Dropout', 'BatchNorm2d', 'BatchNorm1d', 'Linear', 'MaxPool2d',
            'AdaptiveAvgPool2d', 'AvgPool2d', 'Conv2d', 'Sequential', 'safe_divide', 'einsum', 'Softmax', 'IndexSelect',
            'LayerNorm', 'AddEye']
 
@@ -211,6 +211,19 @@ class BatchNorm2d(nn.BatchNorm2d, RelProp):
         S = R / Z
         Ca = S * weight
         R = self.X * (Ca)
+        return R
+
+
+class BatchNorm1d(nn.BatchNorm1d, RelProp):
+    """
+    BatchNorm1d with LRP support.
+    For affine=False (no learnable weight/bias), this just normalizes using running stats.
+    For LRP, we treat it as an identity-like operation since it's just scaling.
+    """
+    def relprop(self, R, alpha):
+        # For BatchNorm with affine=False, there's no weight parameter
+        # The normalization is: (x - running_mean) / sqrt(running_var + eps)
+        # For LRP, we simply pass the relevance through since BN is a linear scaling
         return R
 
 
