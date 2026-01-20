@@ -25,15 +25,25 @@ This implementation uses the **approximated LRP method** by [Hila Chefer](https:
 
 > **Note:** To produce heatmaps, the ViT must have a classification head trained on ImageNet.
 
+## History
+- **16/01/2026** DINO ViT base support
+- **20/01/2026** MAE ViT base support (linear prob on imagenet first 300 classes)
+- **on going**  CLIP ViT base (linear prob on imagenet first 300 classes)
+
 ## Results
 
 **DINOv2 Base (ImageNet 1K, 1-layer LRP):**
 <p align="center">
-  <img width="600" src="outputs/dinov2_base_imagenet1k_1layer_lrp_transformer_attribution.png">
+  <img width="400" src="outputs/dinov2_base_imagenet1k_1layer_lrp_transformer_attribution.png">
 </p>
 
 **ViT Base Patch16 224:**
 <p align="center">
-  <img width="600" src="outputs/vit_base_patch16_224_transformer_attribution.png">
+  <img width="400" src="outputs/vit_base_patch16_224_transformer_attribution.png">
+</p>
+
+**MAE ViT Patch16 224:**
+<p align="center">
+  <img width="400" src="outputs/mae_vit_base_patch16_224_transformer_attribution.png">
 </p>
 
