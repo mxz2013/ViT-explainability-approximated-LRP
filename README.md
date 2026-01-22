@@ -70,7 +70,7 @@ uv run python main.py --model mae_vit_base_patch16_224 --image input_images/catd
   <img width="500" src="outputs/vit_base_patch16_224_transformer_attribution.png">
 </p>
 
-**DINOv2 Base (Self-supervised + Linear Probe):**
+**DINOv2 ViT Base Patch14 224 (Self-supervised + Linear Probe):**
 <p align="center">
   <img width="500" src="outputs/dinov2_base_imagenet1k_1layer_lrp_transformer_attribution.png">
 </p>
@@ -88,9 +88,9 @@ uv run python main.py --model mae_vit_base_patch16_224 --image input_images/catd
 
 ## Changelog
 
-- **2025-01-22** - Added CLIP ViT-B/16 support (linear probe on ImageNet first 5 classes)
+- **2025-01-22** - Added CLIP ViT-B/16 support (linear probe on ImageNet first 300 classes)
 - **2025-01-20** - Added MAE ViT-B/16 support (linear probe on ImageNet first 300 classes)
-- **2025-01-16** - Added DINOv2 ViT-B/14 support
+- **2025-01-16** - Added DINOv2 ViT-B/14 support. Note that the ViT backbone was trained on 518*518 image size with patch size 14*14. However, the linear probing was done on ImageNet-1K dataset with 224*224 inputs.
 
 ## References
 

@@ -680,13 +680,16 @@ def dinov2_base_imagenet1k_1layer_lrp(pretrained=True, num_classes=1000, checkpo
     Load DINOv2-base model with LRP support.
 
     Model configuration:
-    - Image size: 224x224
-    - Patch size: 14x14 (results in 16x16 patch grid)
+    - Image size: 224x224 (HuggingFace default for classification head)
+    - Patch size: 14x14 (results in 16x16 patch grid = 256 patches)
     - Hidden size: 768
     - Num layers: 12
     - Num heads: 12
     - MLP ratio: 4.0
     - Num classes: 1000 (ImageNet)
+
+    Note: DINOv2 backbone was pretrained on 518x518, but the 1-layer classification
+    head was trained on 224x224 with position embedding interpolation.
 
     Args:
         pretrained: If True, load weights from HuggingFace hub
@@ -698,6 +701,7 @@ def dinov2_base_imagenet1k_1layer_lrp(pretrained=True, num_classes=1000, checkpo
         Dinov2ForImageClassification model with LRP capabilities
     """
     # checkpoint_path is ignored - DINOv2 loads from HuggingFace
+    # Using 224x224 to match HuggingFace's classification head training
     model = Dinov2ForImageClassification(
         image_size=224,
         patch_size=14,
