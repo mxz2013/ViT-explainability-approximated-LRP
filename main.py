@@ -57,8 +57,8 @@ MODEL_REGISTRY: dict[str, ModelConfig] = {
     "clip_vit_base_patch16_224": ModelConfig(
         factory=clip_vit_base_patch16_224,
         patch_size=16,
-        model_path="clip/output_dir_small_batch/checkpoint-14.pth",
-        num_classes=5,
+        model_path="clip/output_dir_small_batch/checkpoint-37.pth",
+        num_classes=300,
         normalize_mean=[0.48145466, 0.4578275, 0.40821073],
         normalize_std=[0.26862954, 0.26130258, 0.27577711],
     ),
