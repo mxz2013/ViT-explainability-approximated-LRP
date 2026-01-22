@@ -32,7 +32,7 @@ This implementation uses the **approximated LRP method** from [Hila Chefer's Tra
 | `vit_base_patch16_224` | Supervised (ImageNet) | Pretrained | 1000 |
 | `dinov2_base_imagenet1k_1layer_lrp` | DINOv2 self-supervised | Pretrained | 1000 |
 | `mae_vit_base_patch16_224` | MAE self-supervised | Linear probe | 300 |
-| `clip_vit_base_patch16_224` | CLIP vision-language | Linear probe | 5 |
+| `clip_vit_base_patch16_224` | CLIP vision-language | Linear probe | 300 |
 
 ## Contribution
 
@@ -43,6 +43,7 @@ The core Transformer-Explainability code was developed by [Hila Chefer](https://
 3. **Unified interface** for loading and visualizing different model architectures
 
 ## Usage
+Python version 3.10.19
 
 ```bash
 # Install dependencies
@@ -52,7 +53,7 @@ uv sync
 uv run python main.py --model <model_name> --image <path_to_image> --method transformer_attribution
 
 # Example
-uv run python main.py --model mae_vit_base_patch16_224 --image input_images/class_3.jpg
+uv run python main.py --model mae_vit_base_patch16_224 --image input_images/catdog.png
 ```
 
 **Available methods:**
