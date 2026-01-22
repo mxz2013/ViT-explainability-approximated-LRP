@@ -58,22 +58,23 @@ uv run python main.py --model mae_vit_base_patch16_224 --image input_images/catd
 
 **Available methods:**
 - `transformer_attribution` (recommended) - Gradient-weighted attention rollout
-- `rollout` - Pure attention rollout
-- `full` - Full LRP propagation to pixels
-- `last_layer` - Last layer attention only
-- `last_layer_attn` - Last layer attention without gradients
+- `rollout` - Pure attention rollout (not tested)
+- `full` - Full LRP propagation to pixels (not tested)
+- `last_layer` - Last layer attention only (not tested)
+- `last_layer_attn` - Last layer attention without gradients (not tested)
 
 ## Results
-
-**DINOv2 Base (ImageNet 1K):**
-<p align="center">
-  <img width="500" src="outputs/dinov2_base_imagenet1k_1layer_lrp_transformer_attribution.png">
-</p>
 
 **ViT Base Patch16 224 (Supervised):**
 <p align="center">
   <img width="500" src="outputs/vit_base_patch16_224_transformer_attribution.png">
 </p>
+
+**DINOv2 Base (Self-supervised + Linear Probe):**
+<p align="center">
+  <img width="500" src="outputs/dinov2_base_imagenet1k_1layer_lrp_transformer_attribution.png">
+</p>
+
 
 **MAE ViT Base Patch16 224 (Self-supervised + Linear Probe):**
 <p align="center">

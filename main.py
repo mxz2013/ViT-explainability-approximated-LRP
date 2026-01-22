@@ -39,6 +39,7 @@ MODEL_REGISTRY: dict[str, ModelConfig] = {
     "vit_base_patch16_224": ModelConfig(
         factory=vit_base_patch16_224,
         patch_size=16,
+        num_classes=1000,
     ),
     "mae_vit_base_patch16_224": ModelConfig(
         factory=mae_vit_base_patch16_224,
@@ -51,6 +52,7 @@ MODEL_REGISTRY: dict[str, ModelConfig] = {
     "dinov2_base_imagenet1k_1layer_lrp": ModelConfig(
         factory=dinov2_base_imagenet1k_1layer_lrp,
         patch_size=14,
+        num_classes=1000,
         normalize_mean=[0.485, 0.456, 0.406],
         normalize_std=[0.229, 0.224, 0.225],
     ),

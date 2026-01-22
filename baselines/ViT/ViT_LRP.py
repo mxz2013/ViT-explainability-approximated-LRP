@@ -533,7 +533,8 @@ def _conv_filter(state_dict, patch_size=16):
     return out_dict
 
 
-def vit_base_patch16_224(pretrained=False, **kwargs):
+def vit_base_patch16_224(pretrained=False, num_classes=1000, checkpoint_path=None, **kwargs):
+    # checkpoint_path is ignored - ViT loads from timm pretrained weights
     model = VisionTransformer(
         patch_size=16,
         embed_dim=768,
@@ -541,6 +542,7 @@ def vit_base_patch16_224(pretrained=False, **kwargs):
         num_heads=12,
         mlp_ratio=4,
         qkv_bias=True,
+        num_classes=num_classes,
         **kwargs,
     )
     model.default_cfg = default_cfgs["vit_base_patch16_224"]

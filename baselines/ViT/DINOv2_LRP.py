@@ -675,7 +675,7 @@ def load_dinov2_pretrained_weights(lrp_model, hf_model_name='facebook/dinov2-bas
     return lrp_model
 
 
-def dinov2_base_imagenet1k_1layer_lrp(pretrained=True, **kwargs):
+def dinov2_base_imagenet1k_1layer_lrp(pretrained=True, num_classes=1000, checkpoint_path=None, **kwargs):
     """
     Load DINOv2-base model with LRP support.
 
@@ -690,16 +690,19 @@ def dinov2_base_imagenet1k_1layer_lrp(pretrained=True, **kwargs):
 
     Args:
         pretrained: If True, load weights from HuggingFace hub
+        num_classes: Number of output classes (default: 1000)
+        checkpoint_path: Ignored (for API compatibility with other models)
         **kwargs: Additional arguments for model configuration
 
     Returns:
         Dinov2ForImageClassification model with LRP capabilities
     """
+    # checkpoint_path is ignored - DINOv2 loads from HuggingFace
     model = Dinov2ForImageClassification(
         image_size=224,
         patch_size=14,
         num_channels=3,
-        num_classes=1000,
+        num_classes=num_classes,
         hidden_size=768,
         num_hidden_layers=12,
         num_attention_heads=12,
@@ -708,7 +711,6 @@ def dinov2_base_imagenet1k_1layer_lrp(pretrained=True, **kwargs):
         hidden_dropout_prob=0.0,
         attention_probs_dropout_prob=0.0,
         layerscale_value=1.0,
-        **kwargs
     )
 
     if pretrained:
