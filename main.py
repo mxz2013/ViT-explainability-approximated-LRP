@@ -76,6 +76,7 @@ def show_cam_on_image(img, mask):
     :param mask: Description
     """
     heatmap = cv2.applyColorMap(np.uint8(255 * mask), cv2.COLORMAP_JET)
+    heatmap = cv2.cvtColor(heatmap, cv2.COLOR_BGR2RGB)  # Convert to RGB
     heatmap = np.float32(heatmap) / 255
     cam = heatmap + np.float32(img)
     cam = cam / np.max(cam)
@@ -125,7 +126,6 @@ def generate_visualization(
     ) / (image_transformer_attribution.max() - image_transformer_attribution.min())
     vis = show_cam_on_image(image_transformer_attribution, transformer_attribution)
     vis = np.uint8(255 * vis)
-    vis = cv2.cvtColor(np.array(vis), cv2.COLOR_RGB2BGR)
     return vis
 
 

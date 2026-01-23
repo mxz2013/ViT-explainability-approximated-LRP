@@ -533,7 +533,7 @@ def _conv_filter(state_dict, patch_size=16):
     return out_dict
 
 
-def vit_base_patch16_224(pretrained=False, num_classes=1000, checkpoint_path=None, **kwargs):
+def vit_base_patch16_224(pretrained=True, num_classes=1000, checkpoint_path=None, **kwargs):
     # checkpoint_path is ignored - ViT loads from timm pretrained weights
     model = VisionTransformer(
         patch_size=16,

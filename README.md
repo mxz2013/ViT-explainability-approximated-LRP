@@ -29,10 +29,10 @@ This implementation uses the **approximated LRP method** from [Hila Chefer's Tra
 
 | Model | Pretraining | Head | Classes |
 |-------|-------------|------|---------|
-| `vit_base_patch16_224` | Supervised (ImageNet) | Pretrained | 1000 |
-| `dinov2_base_imagenet1k_1layer_lrp` | DINOv2 self-supervised | Pretrained | 1000 |
-| `mae_vit_base_patch16_224` | MAE self-supervised | Linear probe | 300 |
-| `clip_vit_base_patch16_224` | CLIP vision-language | Linear probe | 300 |
+| `vit_base_patch16_224` | Supervised (ImageNet) | Linear probe | 1000 |
+| `dinov2_base_imagenet1k_1layer_lrp` | DINOv2 self-supervised | Linear probe | 1000 |
+| `mae_vit_base_patch16_224` | MAE self-supervised | Linear probe (by me)| 300 |
+| `clip_vit_base_patch16_224` | CLIP vision-language | Linear probe (by me) | 300 |
 
 ## Contribution
 
@@ -90,7 +90,7 @@ uv run python main.py --model mae_vit_base_patch16_224 --image input_images/catd
 
 - **2025-01-22** - Added CLIP ViT-B/16 support (linear probe on ImageNet first 300 classes)
 - **2025-01-20** - Added MAE ViT-B/16 support (linear probe on ImageNet first 300 classes)
-- **2025-01-16** - Added DINOv2 ViT-B/14 support. Note that the ViT backbone was trained on 518*518 image size with patch size 14*14. However, the linear probing was done on ImageNet-1K dataset with 224*224 inputs.
+- **2025-01-16** - Added DINOv2 ViT-B/14 support. Note that the ViT backbone was trained on 518 image size with patch size 14. However, the linear probing was done on ImageNet-1K dataset with 224 inputs.
 
 ## References
 
